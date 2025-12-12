@@ -1,0 +1,9 @@
+mode: set
+example/dictionary/main.go:7.42,11.24 4 1
+example/dictionary/main.go:11.24,13.61 2 1
+example/dictionary/main.go:13.61,15.21 2 1
+example/dictionary/main.go:15.21,17.5 1 1
+example/dictionary/main.go:18.4,18.13 1 1
+example/dictionary/main.go:22.2,22.21 1 1
+example/dictionary/main.go:22.21,25.3 2 1
+example/dictionary/main.go:26.2,26.16 1 1
