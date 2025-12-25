@@ -38,7 +38,6 @@ type Library struct {
 	location       string
 	bookCount      map[int]int
 	availableBooks map[int]Book
-	borrowBooks    map[int]Book
 	member         map[int]Member
 }
 
@@ -50,8 +49,13 @@ func displayAvailableBooks(listOfBooks map[int]Book) {
 	}
 }
 
-func diplayBorrowedBooks(memberID, listofBorrowers map[int]Book) {
-	
+func diplayBorrowedBooks(name string, booksBorrowedList []Book) {
+	fmt.Printf("List of borrowed books by %v: \n", name)
+	fmt.Printf("| %-8v | %-8v | %-8v |\n", "#", "Title", "Author")
+	for i := range len(booksBorrowedList) {
+		book := booksBorrowedList[i]
+		fmt.Printf("| %-8v | %-8v | %-8v |\n", book.ID, book.Title, book.Author)
+	}
 }
 
 // USER INPUTS Functions
@@ -95,6 +99,19 @@ func memberIdInput() int {
 	return memberID
 }
 
+func fullMemberInfoInput(memberId int) Member {
+	var name string
+
+	fmt.Printf("Enter your name: ")
+	fmt.Scan(&name)
+
+	return Member{
+		ID:            memberId,
+		Name:          name,
+		BorrowedBooks: []Book{},
+	}
+
+}
 
 // LIBRARY INTERFACE IMPLEMENATION
 func (l Library) AddBook(b Book) {
@@ -104,41 +121,66 @@ func (l Library) AddBook(b Book) {
 
 func (l Library) RemoveBook(bookID int) {
 	if l.bookCount[bookID] >= 1 {
+		book := l.availableBooks[bookID]
 		l.bookCount[bookID]--
-		fmt.Printf("Book %v added succesfully", l.availableBooks[bookID].Title)
+		fmt.Printf("Book %v removed succesfully", book.Title)
 		return
 	}
 
-	fmt.Printf("Sorry Book with id %v Not Available in the first place! in order to remove\n", bookID)
+	fmt.Printf("Book with id %v Not Found! \n", bookID)
 }
 
 func (l Library) BorrowBook(bookID int, memberID int) {
 	if l.bookCount[bookID] >= 1 {
 		// register a member
+		memberID := memberIdInput()
 		_, exists := l.member[memberID]
+
+		var member Member
 		if !exists {
-			l.member[memberID] = Member{
-				ID:            1,
-				Name:          "lala",
-				BorrowedBooks: []Book{},
-			}
+			member = fullMemberInfoInput(memberID)
+		} else {
+			member = l.member[memberID]
 		}
 
+		// update the book list of the member
 		book := l.availableBooks[bookID]
-		m := l.member[memberID]
-		m.BorrowedBooks = append(m.BorrowedBooks, book)
-
+		member.BorrowedBooks = append(member.BorrowedBooks, book)
 		l.bookCount[bookID]--
 
-		fmt.Printf("Book %s borrowed successfuly", l.availableBooks[bookID].Title)
+		fmt.Printf("Book '%s' borrowed successfuly", book.Title)
 		return
 	}
 
-	fmt.Printf("book with id %v not available ... :3\n", bookID)
+	fmt.Printf("Book with ID: '%v' \nNot Available/Not Found ... :3\n", bookID)
+
 }
 
 func (l Library) ReturnBook(bookID int, memberID int) {
 	l.bookCount[bookID]++
-	fmt.Printf("Book %v successfuly returned.", l.availableBooks[bookID])
+	fmt.Printf("Book '%v' successfuly returned.", l.availableBooks[bookID].Title)
 
+}
+
+// Display Options
+func diplay() {
+	fmt.Printf(`Choose One:
+	1, to Add a Book
+	2, to Remove a Book
+	3, to Boorow a Book
+	4, to Return a Book
+	5, to List all Available Books
+	6, to list all Borrowed Books
+	0, to Exit
+	`)
+}
+
+func choice() int {
+	var num int
+	fmt.Scan(&num)
+	for num < 0 || num > 6 {
+		fmt.Print("Enter a Valid number \n(Note that the number you pick must be with in the range of 0 - 6)")
+		fmt.Scan(&num)
+	}
+	return num
 }
