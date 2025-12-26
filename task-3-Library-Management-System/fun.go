@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"strconv"
 )
 
 type BookStatus string
@@ -29,8 +31,8 @@ type LibraryManager interface {
 	RemoveBook(bookID int)
 	BorrowBook(bookID int, memberID int) error
 	ReturnBook(bookID int, memberID int) error
-	ListAvailableBooks() []Book
-	ListBorrowedBooks(memberID int) []Book
+	ListAvailableBooks()
+	ListBorrowedBooks(memberID int)
 }
 
 type Library struct {
@@ -42,10 +44,10 @@ type Library struct {
 }
 
 // DISPLAYS INFORMAION
-func displayAvailableBooks(listOfBooks map[int]Book) {
-	fmt.Printf("|%v |%-8v|", "Book", "Count")
-	for key, count := range listOfBooks {
-		fmt.Printf("|%v | %-8v|", key, count)
+func displayAvailableBooks(listOfBooks map[int]Book, count map[int]int) {
+	fmt.Printf("| %-8v | %-8v |\n", "Book", "Count")
+	for key := range listOfBooks {
+		fmt.Printf("| %-8v | %-8v |\n", listOfBooks[key].Title, count[key])
 	}
 }
 
@@ -67,18 +69,18 @@ func bookIdInput() int {
 	return bookID
 }
 
-func bookInput() Book {
+func bookInput(scanner *bufio.Scanner) Book {
 	fmt.Print("Enter Book ID: ")
 	var id int
 	fmt.Scan(&id)
 
 	fmt.Print("Enter Book Title: ")
-	var title string
-	fmt.Scan(&title)
+	scanner.Scan()
+	title := scanner.Text()
 
 	fmt.Print("Enter Book Author: ")
-	var author string
-	fmt.Scan(&author)
+	scanner.Scan()
+	author := scanner.Text()
 
 	bookStatus := Available
 
@@ -91,19 +93,18 @@ func bookInput() Book {
 
 }
 
-func memberIdInput() int {
+func memberIdInput(scanner *bufio.Scanner) int {
 	fmt.Print("Enter your member ID: ")
-	var memberID int
-	fmt.Scan(&memberID)
+	scanner.Scan()
+	memberID, _ := strconv.Atoi(scanner.Text())
 
 	return memberID
 }
 
-func fullMemberInfoInput(memberId int) Member {
-	var name string
-
+func fullMemberInfoInput(scanner *bufio.Scanner, memberId int) Member {
 	fmt.Printf("Enter your name: ")
-	fmt.Scan(&name)
+	scanner.Scan()
+	name := scanner.Text()
 
 	return Member{
 		ID:            memberId,
@@ -130,15 +131,17 @@ func (l Library) RemoveBook(bookID int) {
 	fmt.Printf("Book with id %v Not Found! \n", bookID)
 }
 
-func (l Library) BorrowBook(bookID int, memberID int) {
+
+
+func (l Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 	if l.bookCount[bookID] >= 1 {
 		// register a member
-		memberID := memberIdInput()
+		memberID := memberIdInput(scanner)
 		_, exists := l.member[memberID]
 
 		var member Member
 		if !exists {
-			member = fullMemberInfoInput(memberID)
+			member = fullMemberInfoInput(scanner , memberID)
 		} else {
 			member = l.member[memberID]
 		}
@@ -160,6 +163,16 @@ func (l Library) ReturnBook(bookID int, memberID int) {
 	l.bookCount[bookID]++
 	fmt.Printf("Book '%v' successfuly returned.", l.availableBooks[bookID].Title)
 
+}
+
+func (l Library) ListAvailableBooks() {
+	displayAvailableBooks(l.availableBooks, l.bookCount)
+}
+
+func (l Library) ListBorrowedBooks(memberId int) {
+	name := l.member[memberId].Name
+	books := l.member[memberId].BorrowedBooks
+	diplayBorrowedBooks(name, books)
 }
 
 // Display Options
