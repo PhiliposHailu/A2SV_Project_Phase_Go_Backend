@@ -52,7 +52,7 @@ func displayAvailableBooks(listOfBooks map[int]Book, count map[int]int) {
 }
 
 func diplayBorrowedBooks(name string, booksBorrowedList []Book) {
-	fmt.Printf("List of borrowed books by %v: \n", name)
+	fmt.Printf("List of borrowed books by: %v\n", name)
 	fmt.Printf("| %-8v | %-8v | %-8v |\n", "#", "Title", "Author")
 	for i := range len(booksBorrowedList) {
 		book := booksBorrowedList[i]
@@ -116,7 +116,10 @@ func fullMemberInfoInput(scanner *bufio.Scanner, memberId int) Member {
 
 // LIBRARY INTERFACE IMPLEMENATION
 func (l Library) AddBook(b Book) {
-	l.availableBooks[b.ID] = b
+	_, exists := l.availableBooks[b.ID]
+	if !exists {
+		l.availableBooks[b.ID] = b
+	}
 	l.bookCount[b.ID]++
 }
 
@@ -136,19 +139,20 @@ func (l Library) RemoveBook(bookID int) {
 func (l Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 	if l.bookCount[bookID] >= 1 {
 		// register a member
-		memberID := memberIdInput(scanner)
 		_, exists := l.member[memberID]
 
 		var member Member
 		if !exists {
 			member = fullMemberInfoInput(scanner , memberID)
-		} else {
-			member = l.member[memberID]
+			l.member[memberID] = member
+
 		}
+		member = l.member[memberID]
 
 		// update the book list of the member
 		book := l.availableBooks[bookID]
-		member.BorrowedBooks = append(member.BorrowedBooks, book)
+		member.BorrowedBooks = append(member.BorrowedBooks, book) // make a copy
+		l.member[memberID] = member // resign the copy back to our dicionary
 		l.bookCount[bookID]--
 
 		fmt.Printf("Book '%s' borrowed successfuly", book.Title)

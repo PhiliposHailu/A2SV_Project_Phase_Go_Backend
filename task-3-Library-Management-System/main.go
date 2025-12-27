@@ -14,36 +14,36 @@ func main() {
 		location:  "Addis Ababa",
 		bookCount: map[int]int{},
 		availableBooks: map[int]Book{
-			1: {
-				ID:     1,
-				Title:  "The Go Programming Language",
-				Author: "Alan Donovan",
-				Status: "Available",
-			},
-			2: {
-				ID:     2,
-				Title:  "Clean Code",
-				Author: "Robert C. Martin",
-				Status: "Borrowed",
-			},
-			3: {
-				ID:     3,
-				Title:  "The Pragmatic Programmer",
-				Author: "Andrew Hunt",
-				Status: "Available",
-			},
-			4: {
-				ID:     4,
-				Title:  "Introduction to Algorithms",
-				Author: "Thomas H. Cormen",
-				Status: "Borrowed",
-			},
-			5: {
-				ID:     5,
-				Title:  "Head First Go",
-				Author: "Jay McGavren",
-				Status: "Available",
-			},
+			// 1: {
+			// 	ID:     1,
+			// 	Title:  "The Go Programming Language",
+			// 	Author: "Alan Donovan",
+			// 	Status: "Available",
+			// },
+			// 2: {
+			// 	ID:     2,
+			// 	Title:  "Clean Code",
+			// 	Author: "Robert C. Martin",
+			// 	Status: "Borrowed",
+			// },
+			// 3: {
+			// 	ID:     3,
+			// 	Title:  "The Pragmatic Programmer",
+			// 	Author: "Andrew Hunt",
+			// 	Status: "Available",
+			// },
+			// 4: {
+			// 	ID:     4,
+			// 	Title:  "Introduction to Algorithms",
+			// 	Author: "Thomas H. Cormen",
+			// 	Status: "Borrowed",
+			// },
+			// 5: {
+			// 	ID:     5,
+			// 	Title:  "Head First Go",
+			// 	Author: "Jay McGavren",
+			// 	Status: "Available",
+			// },
 		},
 		member: map[int]Member{},
 	}
