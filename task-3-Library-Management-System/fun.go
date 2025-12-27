@@ -69,10 +69,7 @@ func bookIdInput() int {
 	return bookID
 }
 
-func bookInput(scanner *bufio.Scanner) Book {
-	fmt.Print("Enter Book ID: ")
-	var id int
-	fmt.Scan(&id)
+func bookInput(scanner *bufio.Scanner, id int) Book {
 
 	fmt.Print("Enter Book Title: ")
 	scanner.Scan()
@@ -127,14 +124,15 @@ func (l Library) RemoveBook(bookID int) {
 	if l.bookCount[bookID] >= 1 {
 		book := l.availableBooks[bookID]
 		l.bookCount[bookID]--
+		// if l.bookCount[bookID] == 0 {
+		// 	l.availableBooks[bookID] = 
+		// }
 		fmt.Printf("Book %v removed succesfully", book.Title)
 		return
 	}
 
 	fmt.Printf("Book with id %v Not Found! \n", bookID)
 }
-
-
 
 func (l Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 	if l.bookCount[bookID] >= 1 {
@@ -143,7 +141,7 @@ func (l Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 
 		var member Member
 		if !exists {
-			member = fullMemberInfoInput(scanner , memberID)
+			member = fullMemberInfoInput(scanner, memberID)
 			l.member[memberID] = member
 
 		}
@@ -152,7 +150,7 @@ func (l Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 		// update the book list of the member
 		book := l.availableBooks[bookID]
 		member.BorrowedBooks = append(member.BorrowedBooks, book) // make a copy
-		l.member[memberID] = member // resign the copy back to our dicionary
+		l.member[memberID] = member                               // resign the copy back to our dicionary
 		l.bookCount[bookID]--
 
 		fmt.Printf("Book '%s' borrowed successfuly", book.Title)
@@ -164,9 +162,25 @@ func (l Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 }
 
 func (l Library) ReturnBook(bookID int, memberID int) {
-	l.bookCount[bookID]++
-	fmt.Printf("Book '%v' successfuly returned.", l.availableBooks[bookID].Title)
+	found := false
+	idx := -1
+	for i, val := range l.member[memberID].BorrowedBooks {
+		if bookID == val.ID {
+			found = true
+			idx = i
+			break
+		}
+	}
 
+	if found {
+		l.bookCount[bookID]++
+		mem := l.member[memberID]
+		mem.BorrowedBooks = append(mem.BorrowedBooks[:idx], mem.BorrowedBooks[idx+1:]...)
+		l.member[memberID] = mem
+		fmt.Printf("Book '%v' successfuly returned.", l.availableBooks[bookID].Title)
+	} else {
+		fmt.Printf("Book Not Found")
+	}
 }
 
 func (l Library) ListAvailableBooks() {

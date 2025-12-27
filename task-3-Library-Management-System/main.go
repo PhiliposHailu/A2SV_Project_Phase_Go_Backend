@@ -10,42 +10,11 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	lib := Library{
-		name:      "Abrhot",
-		location:  "Addis Ababa",
-		bookCount: map[int]int{},
-		availableBooks: map[int]Book{
-			// 1: {
-			// 	ID:     1,
-			// 	Title:  "The Go Programming Language",
-			// 	Author: "Alan Donovan",
-			// 	Status: "Available",
-			// },
-			// 2: {
-			// 	ID:     2,
-			// 	Title:  "Clean Code",
-			// 	Author: "Robert C. Martin",
-			// 	Status: "Borrowed",
-			// },
-			// 3: {
-			// 	ID:     3,
-			// 	Title:  "The Pragmatic Programmer",
-			// 	Author: "Andrew Hunt",
-			// 	Status: "Available",
-			// },
-			// 4: {
-			// 	ID:     4,
-			// 	Title:  "Introduction to Algorithms",
-			// 	Author: "Thomas H. Cormen",
-			// 	Status: "Borrowed",
-			// },
-			// 5: {
-			// 	ID:     5,
-			// 	Title:  "Head First Go",
-			// 	Author: "Jay McGavren",
-			// 	Status: "Available",
-			// },
-		},
-		member: map[int]Member{},
+		name:           "Abrhot",
+		location:       "Addis Ababa",
+		bookCount:      map[int]int{},
+		availableBooks: map[int]Book{},
+		member:         map[int]Member{},
 	}
 
 	fmt.Println("Welcome to the Library Mangement System :)")
@@ -57,8 +26,16 @@ func main() {
 		case 0:
 			exitProgram = true
 		case 1:
-			book := bookInput(scanner)
-			lib.AddBook(book)
+			bookId := bookIdInput()
+			_, exists := lib.availableBooks[bookId]
+			
+			if !exists {
+				book := bookInput(scanner, bookId)
+				lib.AddBook(book)
+			} else {
+				lib.bookCount[bookId]++
+			}
+			
 		case 2:
 			id := bookIdInput()
 			lib.RemoveBook(id)
