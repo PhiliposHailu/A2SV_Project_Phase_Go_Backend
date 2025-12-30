@@ -24,14 +24,39 @@ type Library struct {
 	member         map[int]models.Member
 }
 
+func (l *Library) CheckAvailability(bookId int) bool {
+	_, exists := l.availableBooks[bookId]
+	return  exists
+}
+
+func (l *Library) UpdateBookCount(bookId int, sign string) {
+	if sign == "+" {
+		l.bookCount[bookId]++
+	} else {
+		l.bookCount[bookId]--
+	}
+}
+
+func NewLibrary(newName string, newLocation string) *Library{
+	lib := Library{
+		name: newName,
+		location: newLocation,
+		bookCount: map[int]int{},
+		availableBooks: map[int]models.Book{},
+		member: map[int]models.Member{},
+	}
+
+	return &lib
+}
+
 // DISPLAYS INFORMAION
 func displayAvailableBooks(listOfBooks map[int]models.Book, count map[int]int) {
 	fmt.Println()
-	fmt.Printf("| %-8v | %-8v |\n", "Book", "Count")
+	fmt.Printf("| %-16v | %-16v | %-16v |\n", "#", "Book", "Count")
 	row := 1
 	for key := range listOfBooks {
 		if count[key] > 0 {
-			fmt.Printf("| %-8v | %-8v | %-8v |\n", row, listOfBooks[key].Title, count[key])
+			fmt.Printf("| %-16v | %-16v | %-16v |\n", row, listOfBooks[key].Title, count[key])
 			row++
 		}
 	}
@@ -40,11 +65,11 @@ func displayAvailableBooks(listOfBooks map[int]models.Book, count map[int]int) {
 func diplayBorrowedBooks(name string, booksBorrowedList []models.Book) {
 	fmt.Println()
 	fmt.Printf("List of borrowed books by: %v\n", name)
-	fmt.Printf("| %-8v | %-8v | %-8v |\n", "#", "Title", "Author")
+	fmt.Printf("| %-16v | %-16v | %-16v |\n", "#", "Title", "Author")
 	row := 1
 	for i := range len(booksBorrowedList) {
 		book := booksBorrowedList[i]
-		fmt.Printf("| %-8v | %-8v | %-8v |\n", row, book.Title, book.Author)
+		fmt.Printf("| %-16v | %-16v | %-16v |\n", row, book.Title, book.Author)
 	}
 }
 
@@ -61,9 +86,7 @@ func (l Library) RemoveBook(bookID int) {
 	if l.bookCount[bookID] >= 1 {
 		book := l.availableBooks[bookID]
 		l.bookCount[bookID]--
-		// if l.bookCount[bookID] == 0 {
-		// 	l.availableBooks[bookID] = 
-		// }
+		
 		fmt.Printf("Book %v removed succesfully", book.Title)
 		return
 	}
