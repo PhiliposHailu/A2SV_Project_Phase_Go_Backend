@@ -7,6 +7,7 @@ import (
 
 	"github.com/philipos/library/controller"
 	"github.com/philipos/library/services"
+
 )
 
 func main() {
@@ -38,7 +39,13 @@ func main() {
 		case 3:
 			bookId := controller.BookIdInput()
 			memId := controller.MemberIdInput(scanner)
-			lib.BorrowBook(scanner, bookId, memId)
+
+			// Register new user 
+			if !lib.MemberExists(memId) {
+				member := controller.FullMemberInfoInput(scanner, memId)
+				lib.ResgisterNewMember(member, memId)
+			}
+			lib.BorrowBook(bookId, memId)
 		case 4:
 			bookId := controller.BookIdInput()
 			memId := controller.MemberIdInput(scanner)

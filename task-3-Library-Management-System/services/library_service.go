@@ -1,9 +1,8 @@
 package services
 
 import (
-	"bufio"
 	"fmt"
-	"github.com/philipos/library/controller"
+
 	"github.com/philipos/library/models"
 )
 
@@ -26,7 +25,7 @@ type Library struct {
 
 func (l *Library) CheckAvailability(bookId int) bool {
 	_, exists := l.availableBooks[bookId]
-	return  exists
+	return exists
 }
 
 func (l *Library) UpdateBookCount(bookId int, sign string) {
@@ -37,13 +36,13 @@ func (l *Library) UpdateBookCount(bookId int, sign string) {
 	}
 }
 
-func NewLibrary(newName string, newLocation string) *Library{
+func NewLibrary(newName string, newLocation string) *Library {
 	lib := Library{
-		name: newName,
-		location: newLocation,
-		bookCount: map[int]int{},
+		name:           newName,
+		location:       newLocation,
+		bookCount:      map[int]int{},
 		availableBooks: map[int]models.Book{},
-		member: map[int]models.Member{},
+		member:         map[int]models.Member{},
 	}
 
 	return &lib
@@ -82,11 +81,11 @@ func (l *Library) AddBook(b models.Book) {
 	l.bookCount[b.ID]++
 }
 
-func (l Library) RemoveBook(bookID int) {
+func (l *Library) RemoveBook(bookID int) {
 	if l.bookCount[bookID] >= 1 {
 		book := l.availableBooks[bookID]
 		l.bookCount[bookID]--
-		
+
 		fmt.Printf("Book %v removed succesfully", book.Title)
 		return
 	}
@@ -94,27 +93,28 @@ func (l Library) RemoveBook(bookID int) {
 	fmt.Printf("Book with id %v Not Found! \n", bookID)
 }
 
-func (l *Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
-	// Check to make sure no person is able to borrow more thatn 3 books at the same time
+func (l *Library) MemberExists(memberId int) bool {
+	_, exists := l.member[memberId]
+	return exists
+}
 
+func (l *Library) ResgisterNewMember(member models.Member, memberId int) {
+	l.member[memberId] = member
+}
+
+func (l *Library) BorrowBook(bookID int, memberID int) error {
 
 	if l.bookCount[bookID] >= 1 {
-		// register a member
+
 		_, exists := l.member[memberID]
 		if exists {
 			if len(l.member[memberID].BorrowedBooks) > 2 {
-				fmt.Println("Please first return the books you have taken before borrowing any more !")
-				return
+				fmt.Println("Book Limit Reached. \nPlease return books to take more!")
+				return nil
 			}
 		}
 
-		var member models.Member
-		if !exists {
-			member = controller.FullMemberInfoInput(scanner, memberID)
-			l.member[memberID] = member
-
-		}
-		member = l.member[memberID]
+		member := l.member[memberID]
 
 		// update the book list of the member
 		book := l.availableBooks[bookID]
@@ -123,11 +123,11 @@ func (l *Library) BorrowBook(scanner *bufio.Scanner, bookID int, memberID int) {
 		l.bookCount[bookID]--
 
 		fmt.Printf("Book '%s' borrowed successfuly", book.Title)
-		return
+		return nil
 	}
 
 	fmt.Printf("Book with ID: '%v' \nNot Available/Not Found ... :3\n", bookID)
-
+	return nil
 }
 
 func (l *Library) ReturnBook(bookID int, memberID int) {
