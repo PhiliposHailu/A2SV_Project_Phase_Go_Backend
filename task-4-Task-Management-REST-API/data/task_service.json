@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Half Way done Go",
+    "description": "Complete the REST API phase of the learning path.",
+    "due_date": "2025-02-25",
+    "status": "Half Completed Go"
+  },
+  {
+    "title": "Fix Library Bug",
+    "description": "Resolve the pointer receiver issue in the RemoveBook function.",
+    "due_date": "2025-02-19",
+    "status": "Completed"
+  },
+  {
+    "title": "I work CHB",
+    "description": "CHB in the RemoveBook function.",
+    "due_date": "2025-01-19",
+    "status": "started"
+  }
+]
