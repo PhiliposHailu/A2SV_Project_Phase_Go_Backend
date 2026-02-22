@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philipos/api/controllers"
+	"github.com/philipos/api/data"
 	"github.com/philipos/api/router"
 )
 
 func main() {
-	controllers.LoadData()
+	data.LoadData()
 	r := gin.Default()
 
 	router.TaskRouters(r)

@@ -6,9 +6,9 @@ import (
 )
 
 func TaskRouters (router *gin.Engine) {
-	router.GET("/books", controllers.GetAllTasks)
-	router.GET("/book/:id", controllers.GetTask)
-	router.POST("/create", controllers.CreateTask)
-	router.PUT("/update/:id", controllers.UpdateTask)
-	router.DELETE("/delete/:id", controllers.DeleteTask)
+	router.GET("/tasks", controllers.GetAllTasks)
+	router.GET("/tasks/:id", controllers.GetTask)
+	router.POST("/tasks", controllers.CreateTask)
+	router.PUT("/tasks/:id", controllers.UpdateTask)
+	router.DELETE("/tasks/:id", controllers.DeleteTask)
 }
