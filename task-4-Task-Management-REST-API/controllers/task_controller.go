@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/philipos/api/data"
 	"github.com/philipos/api/models"
@@ -9,7 +10,7 @@ import (
 
 // CRUD operations
 func GetAllTasks(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"message: ": data.GetAllTasksService()})
+	c.IndentedJSON(http.StatusOK, gin.H{"message": data.GetAllTasksService()})
 }
 
 func GetTask(c *gin.Context) {
@@ -26,7 +27,7 @@ func GetTask(c *gin.Context) {
 func CreateTask(c *gin.Context) {
 	var newTask models.Task
 	if err := c.BindJSON(&newTask); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message: ": "failed to decerialize to obj"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "failed to decerialize to obj"})
 		return
 	}
 	data.CreateTaskService(newTask)
@@ -36,14 +37,14 @@ func CreateTask(c *gin.Context) {
 func UpdateTask(c *gin.Context) {
 	var newTask models.Task
 	if err := c.BindJSON(&newTask); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message: ": "failed to decerialize to obj"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "failed to decerialize to obj"})
 		return
 	}
 	id := c.Param("id")
 	err := data.UpdateTaskService(id, newTask)
 
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -55,7 +56,7 @@ func DeleteTask(c *gin.Context) {
 	id := c.Param("id")
 	err := data.DeleteTaskService(id)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
