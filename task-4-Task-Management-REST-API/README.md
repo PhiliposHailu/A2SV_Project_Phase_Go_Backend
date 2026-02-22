@@ -1,5 +1,3 @@
-Here is a clear and comprehensive API documentation formatted specifically for your `docs/api_documentation.md` or `README.md` file.
-
 ---
 
 # Task Management API Documentation
