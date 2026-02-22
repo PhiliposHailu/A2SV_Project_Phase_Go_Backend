@@ -17,10 +17,10 @@ func GetTask(c *gin.Context) {
 
 	task, err := data.GetTaskService(id)
 	if err != nil {
-		c.IndentedJSON(http.StatusOK, gin.H{"message": task})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err})
 		return
 	}
-	c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err})
+	c.IndentedJSON(http.StatusOK, gin.H{"message": task})
 }
 
 func CreateTask(c *gin.Context) {
@@ -30,6 +30,7 @@ func CreateTask(c *gin.Context) {
 		return
 	}
 	data.CreateTaskService(newTask)
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Task created successfuly."})
 }
 
 func UpdateTask(c *gin.Context) {

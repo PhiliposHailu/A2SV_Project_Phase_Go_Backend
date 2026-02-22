@@ -10,7 +10,7 @@ import (
 
 var tasks = []models.Task{}
 
-const dbFile = "data/task_service.json"
+const dbFile = "data/data.json"
 
 func saveData() {
 	data, err := json.MarshalIndent(tasks, "", "  ")
