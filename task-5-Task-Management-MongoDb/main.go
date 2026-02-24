@@ -22,16 +22,14 @@ import (
 	"context"
 	"fmt"
 	"log"
-
 	"github.com/philipos/api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	// DB Connection
+	// DB Connection SET-UP
 	uri := "mongodb://localhost:27017"
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
@@ -47,7 +45,6 @@ func main() {
 
 	fmt.Println("✅ Successfully connected to MongoDB!")
 
-	// Identify DB &  Collection
 	collection := client.Database("taskdb").Collection("tasks")
 
 	// ==========================================
@@ -80,14 +77,13 @@ func main() {
 
 	fmt.Printf("🔍 Found Task: %+v\n", foundTask)
 
-
 	// ==========================================
 	// PART C: UPDATE A DOCUMENT
 	// ==========================================
-	
+
 	updateRule := bson.M{
 		"$set": bson.M{
-			"status": "Completed", 
+			"status": "Completed",
 		},
 	}
 
@@ -97,11 +93,10 @@ func main() {
 	}
 	fmt.Printf("🔄 Updated %v document(s)\n", updateRes.ModifiedCount)
 
-
 	// ==========================================
 	// PART D: DELETE A DOCUMENT
 	// ==========================================
-	
+
 	deleteRes, err := collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
