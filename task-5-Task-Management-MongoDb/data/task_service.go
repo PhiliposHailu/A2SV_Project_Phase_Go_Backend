@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/philipos/api/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,7 +45,7 @@ func GetAllTasksService() ([]models.Task, error) {
 		return nil, err
 	}
 
-	// DECODE bson in to a struct 
+	// DECODE bson in to a struct
 	err = cursor.All(context.TODO(), &foundTasks)
 	if err != nil {
 		return nil, err
@@ -66,41 +65,62 @@ func GetTaskService(id primitive.ObjectID) (*models.Task, error) {
 	return &foundTask, err
 }
 
-func CreateTaskService(newTask models.Task) {
-	tasks = append(tasks, newTask)
-	saveData()
+func CreateTaskService(newTask models.Task) (*models.Task, error) {
+	res, err := TasksCollection.InsertOne(context.TODO(), newTask)
+	if err != nil {
+		return nil, err
+	}
+	newTask.ID = res.InsertedID.(primitive.ObjectID)
+	return &newTask, nil
 }
 
-func UpdateTaskService(id string, updatedTask models.Task) error {
-	intId, err := strconv.Atoi(id)
+func UpdateTaskService(id primitive.ObjectID, updatedTask *models.Task) (*models.Task, error) {
 
+	filter := bson.M{
+		"_id": id,
+	}
+	updateData := bson.M{}
+	if updatedTask.Title != "" {
+		updateData["title"] = updatedTask.Title
+	}
+	if updatedTask.Description != "" {
+		updateData["description"] = updatedTask.Description
+	}
+	if updatedTask.Status != "" {
+		updateData["status"] = updatedTask.Status
+	}
+	if updatedTask.DueDate != "" {
+		updateData["due_date"] = updatedTask.DueDate
+	}
+
+	if len(updateData) == 0 {
+		return nil, fmt.Errorf("no fields provided")
+	}
+
+	update := bson.M{
+		"$set": updateData,
+	}
+
+	res, err := TasksCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return fmt.Errorf("id not correct id: %s", id)
+		return nil, err
 	}
-
-	for i, task := range tasks {
-		if task.ID == intId {
-			tasks[i] = updatedTask
-			saveData()
-			return nil
-		}
+	if res.MatchedCount == 0 {
+		return nil, mongo.ErrNoDocuments
 	}
-	return fmt.Errorf("task with id: %s does not exist", id)
+	updatedTask.ID = id
+	return updatedTask, nil
 }
 
-func DeleteTaskService(id string) error {
-	intId, err := strconv.Atoi(id)
-
+func DeleteTaskService(id primitive.ObjectID) error {
+	filter := bson.M{"_id": id}
+	res, err := TasksCollection.DeleteOne(context.TODO(), filter)
 	if err != nil {
-		return fmt.Errorf("could not convert id %s to int value.", id)
+		return err
 	}
-
-	for i, task := range tasks {
-		if task.ID == intId {
-			tasks = append(tasks[:i], tasks[i+1:]...)
-			saveData()
-			return nil
-		}
+	if res.DeletedCount == 0 {
+		return mongo.ErrNoDocuments
 	}
-	return fmt.Errorf("task with id: %s does not exist", id)
+	
+	return nil
 }
