@@ -21,7 +21,6 @@ func ConnectDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer client.Disconnect(context.TODO())
 
 	// Check connection
 	err = client.Ping(context.TODO(), nil)
@@ -39,11 +38,12 @@ func GetAllTasksService() ([]models.Task, error) {
 
 	filter := bson.M{}
 	cursor, err := TasksCollection.Find(context.TODO(), filter)
-	defer cursor.Close(context.TODO())
 
 	if err != nil {
 		return nil, err
 	}
+
+	defer cursor.Close(context.TODO())
 
 	// DECODE bson in to a struct
 	err = cursor.All(context.TODO(), &foundTasks)
@@ -121,6 +121,6 @@ func DeleteTaskService(id primitive.ObjectID) error {
 	if res.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
 	}
-	
+
 	return nil
 }
