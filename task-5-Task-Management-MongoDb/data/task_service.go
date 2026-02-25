@@ -1,97 +1,106 @@
-// package data
+package data
 
-// import (
-// 	"encoding/json"
-// 	"fmt"
-// 	"strconv"
-// 	"os"
-// 	"github.com/philipos/api/models"
-// )
+import (
+	"context"
+	"fmt"
+	"log"
+	"strconv"
 
-// var tasks = []models.Task{}
+	"github.com/philipos/api/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
-// const dbFile = "data/data.json"
+var TasksCollection *mongo.Collection
 
-// func saveData() {
-// 	data, err := json.MarshalIndent(tasks, "", "  ")
-// 	if err != nil {
-// 		fmt.Println("Error marshalling data:", err)
-// 		return
-// 	}
+func ConnectDB() {
+	uri := "mongodb://localhost:27017"
 
-// 	err = os.WriteFile(dbFile, data, 0644)
-// 	if err != nil {
-// 		fmt.Println("Error writing file:", err)
-// 	}
-// }
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(context.TODO())
 
-// func LoadData() {
-// 	data, err := os.ReadFile(dbFile)
-// 	if err != nil {
-// 		return
-// 	}
-// 	fmt.Println("before", tasks)
+	// Check connection
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatal("Connection failed! Is MongoDB running? Error:", err)
+	}
 
-// 	err = json.Unmarshal(data, &tasks)
-// 	if err != nil {
-// 		fmt.Println("Error unmarshalling data:", err)
-// 	}
-// 	fmt.Println("after", tasks)
-// }
+	fmt.Println("✅ Successfully connected to MongoDB!")
 
-// func GetAllTasksService() []models.Task {
-// 	return tasks
-// }
+	TasksCollection = client.Database("taskdb").Collection("tasks")
+}
 
-// func GetTaskService(id string) (*models.Task, error) {
-// 	intId, err := strconv.Atoi(id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("id not correct id: %s", id)
-// 	}
+func GetAllTasksService() ([]models.Task, error) {
+	foundTasks := []models.Task{}
 
-// 	for _, task := range tasks {
-// 		if task.ID == intId {
-// 			return &task, nil
-// 		}
-// 	}
-// 	return nil, fmt.Errorf("task with id: %s does not exist", id)
-// }
+	filter := bson.M{}
+	cursor, err := TasksCollection.Find(context.TODO(), filter)
+	defer cursor.Close(context.TODO())
 
-// func CreateTaskService(newTask models.Task) {
-// 	tasks = append(tasks, newTask)
-// 	saveData()
-// }
+	if err != nil {
+		return nil, err
+	}
 
-// func UpdateTaskService(id string, updatedTask models.Task) error {
-// 	intId, err := strconv.Atoi(id)
+	// DECODE bson in to a struct 
+	err = cursor.All(context.TODO(), &foundTasks)
+	if err != nil {
+		return nil, err
+	}
 
-// 	if err != nil {
-// 		return fmt.Errorf("id not correct id: %s", id)
-// 	}
+	return foundTasks, nil
+}
 
-// 	for i, task := range tasks {
-// 		if task.ID == intId {
-// 			tasks[i] = updatedTask
-// 			saveData()
-// 			return nil
-// 		}
-// 	}
-// 	return fmt.Errorf("task with id: %s does not exist", id)
-// }
+func GetTaskService(id primitive.ObjectID) (*models.Task, error) {
+	var foundTask models.Task
+	filter := bson.M{"_id": id}
 
-// func DeleteTaskService(id string) (error){
-// 	intId, err := strconv.Atoi(id)
+	err := TasksCollection.FindOne(context.TODO(), filter).Decode(&foundTask)
+	if err != nil {
+		return nil, err
+	}
+	return &foundTask, err
+}
 
-// 	if err != nil {
-// 		return fmt.Errorf("could not convert id %s to int value.", id)
-// 	}
+func CreateTaskService(newTask models.Task) {
+	tasks = append(tasks, newTask)
+	saveData()
+}
 
-// 	for i, task := range tasks {
-// 		if task.ID == intId {
-// 			tasks = append(tasks[:i], tasks[i + 1:]...)
-// 			saveData()
-// 			return nil
-// 		}
-// 	}
-// 	return fmt.Errorf("task with id: %s does not exist", id)
-// }
+func UpdateTaskService(id string, updatedTask models.Task) error {
+	intId, err := strconv.Atoi(id)
+
+	if err != nil {
+		return fmt.Errorf("id not correct id: %s", id)
+	}
+
+	for i, task := range tasks {
+		if task.ID == intId {
+			tasks[i] = updatedTask
+			saveData()
+			return nil
+		}
+	}
+	return fmt.Errorf("task with id: %s does not exist", id)
+}
+
+func DeleteTaskService(id string) error {
+	intId, err := strconv.Atoi(id)
+
+	if err != nil {
+		return fmt.Errorf("could not convert id %s to int value.", id)
+	}
+
+	for i, task := range tasks {
+		if task.ID == intId {
+			tasks = append(tasks[:i], tasks[i+1:]...)
+			saveData()
+			return nil
+		}
+	}
+	return fmt.Errorf("task with id: %s does not exist", id)
+}

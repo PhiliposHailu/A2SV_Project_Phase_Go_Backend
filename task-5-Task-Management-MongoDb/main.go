@@ -38,6 +38,7 @@ func main() {
 	}
 	defer client.Disconnect(context.TODO())
 
+	// Check connection 
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
 		log.Fatal("Connection failed! Is MongoDB running? Error:", err)

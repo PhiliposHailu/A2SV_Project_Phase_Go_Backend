@@ -6,17 +6,29 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/philipos/api/data"
 	"github.com/philipos/api/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // CRUD operations
 func GetAllTasks(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"message": data.GetAllTasksService()})
+	foundTasks, err := data.GetAllTasksService()
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"message": foundTasks})
 }
 
 func GetTask(c *gin.Context) {
 	id := c.Param("id")
+	// parse it in to a primitive object type 
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err})
+		return
+	}
 
-	task, err := data.GetTaskService(id)
+	task, err := data.GetTaskService(objId)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err})
 		return
@@ -27,7 +39,7 @@ func GetTask(c *gin.Context) {
 func CreateTask(c *gin.Context) {
 	var newTask models.Task
 	if err := c.BindJSON(&newTask); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "failed to decerialize to obj"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Error with given task"})
 		return
 	}
 	data.CreateTaskService(newTask)
