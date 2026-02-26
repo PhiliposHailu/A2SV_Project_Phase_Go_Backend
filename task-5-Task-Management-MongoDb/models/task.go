@@ -9,3 +9,10 @@ type Task struct {
 	DueDate     string `json:"due_date" bson:"due_date"`
 	Status      string `json:"status" bson:"status"`
 }
+
+
+type User struct {
+	ID          primitive.ObjectID    `json:"id" bson:"_id,omitempty"`
+	Username       string `json:"username" bson:"username"`
+	Password       string `json:"password" bson:"password"`
+}
