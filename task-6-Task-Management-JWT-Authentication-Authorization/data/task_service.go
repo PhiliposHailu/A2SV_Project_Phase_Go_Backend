@@ -34,6 +34,16 @@ func ConnectDB() {
 
 	TasksCollection = client.Database("taskdb").Collection("tasks")
 	UserCollection = client.Database("taskdb").Collection("users")
+
+	indexModel := mongo.IndexModel{
+        Keys:    bson.D{{Key: "username", Value: 1}},
+        Options: options.Index().SetUnique(true),    
+    }
+
+    _, err = UserCollection.Indexes().CreateOne(context.TODO(), indexModel)
+    if err != nil {
+        log.Fatal("Could not create unique index:", err)
+    }
 }
 
 func GetAllTasksService() ([]models.Task, error) {

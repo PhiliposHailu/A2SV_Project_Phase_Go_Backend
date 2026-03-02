@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/philipos/api/data"
 	"github.com/philipos/api/models"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Register(c *gin.Context) {
@@ -17,6 +18,11 @@ func Register(c *gin.Context) {
 
 	err := data.RegisterService(&newUser)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+            c.JSON(http.StatusConflict, gin.H{"error": "This username is already taken"})
+            return
+        }
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -26,7 +32,6 @@ func Register(c *gin.Context) {
 		"message": "User registered successfully",
 		"user":    newUser,
 	})
-
 
 }
 
