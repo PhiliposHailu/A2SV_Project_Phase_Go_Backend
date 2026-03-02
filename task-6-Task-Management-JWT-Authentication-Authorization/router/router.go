@@ -3,15 +3,21 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/philipos/api/controllers"
+	"github.com/philipos/api/middleware"
 )
 
-func TaskRouters (router *gin.Engine) {
+func TaskRouters(router *gin.Engine) {
 	router.POST("/register", controllers.Register)
 	router.POST("/login", controllers.Login)
 
-	router.GET("/tasks", controllers.GetAllTasks)
-	router.GET("/tasks/:id", controllers.GetTask)
-	router.POST("/tasks", controllers.CreateTask)
-	router.PUT("/tasks/:id", controllers.UpdateTask)
-	router.DELETE("/tasks/:id", controllers.DeleteTask)
+	authRouter := router.Group("/tasks")
+	authRouter.Use(middleware.AuthMiddleware())
+
+	{
+		authRouter.GET("", controllers.GetAllTasks)
+		authRouter.GET("/:id", controllers.GetTask)
+		authRouter.POST("", controllers.CreateTask)
+		authRouter.PUT("/:id", controllers.UpdateTask)
+		authRouter.DELETE("/:id", middleware.RoleMiddleware("admin"), controllers.DeleteTask)
+	}
 }

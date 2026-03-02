@@ -17,7 +17,7 @@ func RegisterService(newUser *models.User) error {
 	}
 
 	newUser.Password = string(hashedPassword)
-	// Default Role 
+	// Default Role
 	if newUser.Role == "" {
 		newUser.Role = "user"
 	}
@@ -33,12 +33,12 @@ func LoginService(username string, password string) (string, error) {
 	var user models.User
 	err := UserCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&user)
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return "", errors.New("invalid username or password")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return "", errors.New("invalid username or password")
 	}
 
 	token, err := utils.GenerateToken(user.ID.Hex(), user.Role)
