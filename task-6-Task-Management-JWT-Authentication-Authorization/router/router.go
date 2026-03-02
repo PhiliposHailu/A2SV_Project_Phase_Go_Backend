@@ -7,6 +7,8 @@ import (
 
 func TaskRouters (router *gin.Engine) {
 	router.POST("/register", controllers.Register)
+	router.POST("/login", controllers.Login)
+
 	router.GET("/tasks", controllers.GetAllTasks)
 	router.GET("/tasks/:id", controllers.GetTask)
 	router.POST("/tasks", controllers.CreateTask)

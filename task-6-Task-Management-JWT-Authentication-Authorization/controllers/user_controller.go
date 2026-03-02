@@ -27,4 +27,23 @@ func Register(c *gin.Context) {
 		"user":    newUser,
 	})
 
+
+}
+
+func Login(c * gin.Context) {
+	var info models.User
+	if err := c.BindJSON(&info); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request"})
+		return
+	}
+	token, err := data.LoginService(info.Username, info.Password)
+	if err != nil {
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "Login successful",
+		"token":   token,
+	})
 }
