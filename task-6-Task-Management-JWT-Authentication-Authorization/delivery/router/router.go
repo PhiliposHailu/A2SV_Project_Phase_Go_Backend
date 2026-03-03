@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philipos/api/controllers"
+	"github.com/philipos/api/delivery/controllers"
 	"github.com/philipos/api/middleware"
 )
 

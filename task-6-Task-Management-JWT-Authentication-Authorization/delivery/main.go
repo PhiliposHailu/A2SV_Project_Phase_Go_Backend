@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/philipos/api/data"
-	"github.com/philipos/api/router"
+	"github.com/philipos/api/usecase"
+	"github.com/philipos/api/delivery/router"
 )
 
 func main() {
