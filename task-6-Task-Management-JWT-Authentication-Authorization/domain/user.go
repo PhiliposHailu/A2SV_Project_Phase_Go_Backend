@@ -1,11 +1,8 @@
-package models
-
-import "go.mongodb.org/mongo-driver/bson/primitive"
+package domain
 
 type User struct {
-	ID          primitive.ObjectID    `json:"id" bson:"_id,omitempty"`
-	Username       string `json:"username" bson:"username"`
-	Password       string `json:"password" bson:"password"`
-	Role       string `json:"role" bson:"role"`
-
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
 }

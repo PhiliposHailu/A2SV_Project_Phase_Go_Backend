@@ -1,11 +1,27 @@
-package models
+package domain
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import "time"
 
 type Task struct {
-	ID          primitive.ObjectID    `json:"id" bson:"_id,omitempty"`
-	Title       string `json:"title" bson:"title"`
-	Description string `json:"description" bson:"description"`
-	DueDate     string `json:"due_date" bson:"due_date"`
-	Status      string `json:"status" bson:"status"`
+	ID          string    `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Status      string    `json:"status"`
+	DueDate     time.Time `json:"due_date"`
+}
+
+type TaskRepository interface {
+	FetchAll() ([]Task, error)
+	GetByID(id string) (*Task, error)
+	Create(task *Task) error
+	Update(id string, task *Task) error
+	Delete(id string) error
+}
+
+type TaskUsecase interface {
+	FetchAll() ([]Task, error)
+	GetByID(id string) (*Task, error)
+	Create(task *Task) error
+	Update(id string, task *Task) error
+	Delete(id string) error
 }
