@@ -3,22 +3,24 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/philipos/api/delivery/controllers"
+	"github.com/philipos/api/middleware"
 )
 
-func TaskRouters(controller *controllers.TaskController) *gin.Engine {
-	// router.POST("/register", controllers.Register)
-	// router.POST("/login", controllers.Login)
+func TaskRouters(taskController *controllers.TaskController, userController *controllers.UserController) *gin.Engine {
 	router := gin.Default()
+
+	router.POST("/register", userController.Register)
+	router.POST("/login", userController.Login)
 	authRouter := router.Group("/tasks")
-	// authRouter.Use(middleware.AuthMiddleware())
+	authRouter.Use(middleware.AuthMiddleware())
 
 	{
-		authRouter.GET("", controller.FetchAll)
-		authRouter.GET("/:id", controller.GetByID)
-		authRouter.POST("", controller.Create)
-		authRouter.PUT("/:id", controller.Update)
-		// authRouter.DELETE("/:id", middleware.RoleMiddleware("admin"), controller.Delete)
-		authRouter.DELETE("/:id", controller.Delete)
+		authRouter.GET("", taskController.FetchAll)
+		authRouter.GET("/:id", taskController.GetByID)
+		authRouter.POST("", taskController.Create)
+		authRouter.PUT("/:id", taskController.Update)
+		authRouter.DELETE("/:id", middleware.RoleMiddleware("admin"), taskController.Delete)
+		// authRouter.DELETE("/:id", taskController.Delete)
 
 	}
 

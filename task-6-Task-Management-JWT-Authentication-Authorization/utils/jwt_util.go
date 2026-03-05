@@ -17,10 +17,8 @@ func GenerateToken(userID string, role string) (string, error) {
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	}
 
-	// add the signing method
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// signed token
 	return token.SignedString(secretKey)
 }
 
