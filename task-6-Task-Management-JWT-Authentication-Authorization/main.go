@@ -15,9 +15,13 @@ func main() {
 	taskController := controllers.NewTaskController(taskUsecase)
 
 	userRepo := repository.NewUserRepository(db, "users")
-	userUsecase := usecase.NewUserUsecase(userRepo)
+	passwordService := infrastructure.NewPasswordService()
+	jwtService:= infrastructure.NewJWTService("mySecretePassword")
+
+	userUsecase := usecase.NewUserUsecase(userRepo, passwordService, jwtService)
+
 	userController := controllers.NewUserController(userUsecase)
 
-	r := router.TaskRouters(taskController, userController)
+	r := router.TaskRouters(taskController, userController, jwtService)
 	r.Run("localhost:3000")
 }

@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philipos/api/utils"
+	"github.com/philipos/api/domain" 
+
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(jwtService domain.JWTService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 
@@ -18,8 +19,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-		claims, err := utils.VerifyToken(tokenString)
+		
+		claims, err := jwtService.ValidateToken(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			return
