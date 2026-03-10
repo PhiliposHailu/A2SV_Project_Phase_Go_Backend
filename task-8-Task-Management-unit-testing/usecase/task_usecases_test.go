@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	// "errors"
 	"testing"
 
 	"github.com/philipos/api/domain"
