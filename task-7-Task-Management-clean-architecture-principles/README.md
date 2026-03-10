@@ -1,5 +1,4 @@
 ---
-
 # 🏗 Task Management API: Clean Architecture Refactor
 
 This project is a complete refactor of the Task Management API, migrating from a traditional layered architecture to **Clean Architecture** (also known as Onion or Hexagonal Architecture).
