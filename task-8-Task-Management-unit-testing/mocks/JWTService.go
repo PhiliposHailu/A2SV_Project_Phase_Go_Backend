@@ -1,0 +1,23 @@
+package mocks
+
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/stretchr/testify/mock"
+)
+
+type JWTService struct {
+	mock.Mock
+}
+
+func (m *JWTService) GenerateToken(userID string, role string) (string, error) {
+	args := m.Called(userID, role)
+	return args.String(0), args.Error(1)
+}
+
+func (m *JWTService) ValidateToken(token string) (jwt.MapClaims, error) {
+	args := m.Called(token)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(jwt.MapClaims), args.Error(1)
+}
