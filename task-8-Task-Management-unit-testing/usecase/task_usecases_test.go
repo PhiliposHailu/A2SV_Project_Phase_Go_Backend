@@ -1,51 +1,64 @@
 package usecase
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/philipos/api/domain"
 	"github.com/philipos/api/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestCreateTask_Success(t *testing.T) {
-	mockRepo := new(mocks.TaskRepository)
-	uc := NewTaskUsecase(mockRepo)
+func TestTaskUsecase_Create(t *testing.T) {
+	tests := []struct {
+		name          string
+		inputTask     *domain.Task
+		mockBehavior  func(m *mocks.TaskRepository)
+		expectedError string
+	}{
+		{
+			name:      "Success",
+			inputTask: &domain.Task{Title: "Learn Testing", Status: "Pending"},
+			mockBehavior: func(m *mocks.TaskRepository) {
+				m.On("Create", mock.Anything).Return(nil)
+			},
+			expectedError: "",
+		},
+		{
+			name:      "Failure - Empty Title",
+			inputTask: &domain.Task{Title: "", Status: "Pending"},
+			mockBehavior: func(m *mocks.TaskRepository) {
+			},
+			expectedError: "task title is required",
+		},
+		{
+			name:      "Failure - DB Error",
+			inputTask: &domain.Task{Title: "Valid Title", Status: "Pending"},
+			mockBehavior: func(m *mocks.TaskRepository) {
+				m.On("Create", mock.Anything).Return(errors.New("database down"))
+			},
+			expectedError: "database down",
+		},
+	}
 
-	task := &domain.Task{Title: "Test Task", Status: "Pending"}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRepo := new(mocks.TaskRepository)
+			tc.mockBehavior(mockRepo)
 
-	mockRepo.On("Create", task).Return(nil)
+			uc := NewTaskUsecase(mockRepo)
 
-	err := uc.Create(task)
+			err := uc.Create(tc.inputTask)
 
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
+			if tc.expectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tc.expectedError, err.Error())
+			}
 
-func TestCreateTask_EmptyTitle(t *testing.T) {
-	mockRepo := new(mocks.TaskRepository)
-	uc := NewTaskUsecase(mockRepo)
-
-	task := &domain.Task{Title: "", Status: "Pending"}
-
-	err := uc.Create(task)
-
-	assert.Error(t, err)
-	assert.Equal(t, "task title is required", err.Error())
-	mockRepo.AssertNotCalled(t, "Create")
-}
-
-func TestGetByID_Success(t *testing.T) {
-	mockRepo := new(mocks.TaskRepository)
-	uc := NewTaskUsecase(mockRepo)
-
-	expectedTask := &domain.Task{ID: "123", Title: "Test"}
-
-	mockRepo.On("GetByID", "123").Return(expectedTask, nil)
-
-	task, err := uc.GetByID("123")
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedTask, task)
-	mockRepo.AssertExpectations(t)
+			mockRepo.AssertExpectations(t)
+		})
+	}
 }

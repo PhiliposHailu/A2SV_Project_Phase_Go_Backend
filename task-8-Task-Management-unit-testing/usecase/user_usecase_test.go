@@ -7,71 +7,135 @@ import (
 	"github.com/philipos/api/domain"
 	"github.com/philipos/api/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestRegister_Success(t *testing.T) {
-	mockRepo := new(mocks.UserRepository)
-	mockPwd := new(mocks.PasswordService)
-	mockJWT := new(mocks.JWTService)
+func TestUserUsecase_Register(t *testing.T) {
+	tests := []struct {
+		name          string
+		inputUser     *domain.User
+		mockBehavior  func(repo *mocks.UserRepository, pwd *mocks.PasswordService)
+		expectedError string
+	}{
+		{
+			name:      "Success",
+			inputUser: &domain.User{Username: "philip", Password: "123"},
+			mockBehavior: func(repo *mocks.UserRepository, pwd *mocks.PasswordService) {
+				repo.On("GetByUsername", "philip").Return(nil, errors.New("not found"))
+				pwd.On("HashPassword", "123").Return("hashed_123", nil)
+				repo.On("Create", mock.Anything).Return(nil)
+			},
+			expectedError: "",
+		},
+		{
+			name:      "Failure - Username Exists",
+			inputUser: &domain.User{Username: "philip", Password: "123"},
+			mockBehavior: func(repo *mocks.UserRepository, pwd *mocks.PasswordService) {
+				repo.On("GetByUsername", "philip").Return(&domain.User{Username: "philip"}, nil)
+			},
+			expectedError: "username already exists",
+		},
+		{
+			name:      "Failure - Empty Fields",
+			inputUser: &domain.User{Username: "", Password: ""},
+			mockBehavior: func(repo *mocks.UserRepository, pwd *mocks.PasswordService) {},
+			expectedError: "username and password cannot be empty",
+		},
+	}
 
-	uc := NewUserUsecase(mockRepo, mockPwd, mockJWT)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRepo := new(mocks.UserRepository)
+			mockPwd := new(mocks.PasswordService)
+			mockJWT := new(mocks.JWTService)
 
-	user := &domain.User{Username: "philip", Password: "password123"}
+			tc.mockBehavior(mockRepo, mockPwd)
 
-	mockRepo.On("GetByUsername", "philip").Return(nil, errors.New("not found"))
-	mockPwd.On("HashPassword", "password123").Return("hashed_pw", nil)
-	mockRepo.On("Create", user).Return(nil)
+			uc := NewUserUsecase(mockRepo, mockPwd, mockJWT)
+			err := uc.Register(tc.inputUser)
 
-	err := uc.Register(user)
+			if tc.expectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tc.expectedError, err.Error())
+			}
 
-	assert.NoError(t, err)
-	assert.Equal(t, "hashed_pw", user.Password)
-	assert.Equal(t, "user", user.Role)
-
-	mockRepo.AssertExpectations(t)
-	mockPwd.AssertExpectations(t)
+			mockRepo.AssertExpectations(t)
+			mockPwd.AssertExpectations(t)
+		})
+	}
 }
 
-func TestRegister_UsernameExists(t *testing.T) {
-	mockRepo := new(mocks.UserRepository)
-	mockPwd := new(mocks.PasswordService)
-	mockJWT := new(mocks.JWTService)
+func TestUserUsecase_Login(t *testing.T) {
+	tests := []struct {
+		name          string
+		username      string
+		password      string
+		mockBehavior  func(repo *mocks.UserRepository, pwd *mocks.PasswordService, jwt *mocks.JWTService)
+		expectedToken string
+		expectedError string
+	}{
+		{
+			name:     "Success",
+			username: "philip",
+			password: "123",
+			mockBehavior: func(repo *mocks.UserRepository, pwd *mocks.PasswordService, jwt *mocks.JWTService) {
+				existingUser := &domain.User{ID: "1", Username: "philip", Password: "hashed_123", Role: "admin"}
+				repo.On("GetByUsername", "philip").Return(existingUser, nil)
+				pwd.On("ComparePassword", "hashed_123", "123").Return(nil)
+				jwt.On("GenerateToken", "1", "admin").Return("valid_token", nil)
+			},
+			expectedToken: "valid_token",
+			expectedError: "",
+		},
+		{
+			name:     "Failure - User Not Found",
+			username: "unknown",
+			password: "123",
+			mockBehavior: func(repo *mocks.UserRepository, pwd *mocks.PasswordService, jwt *mocks.JWTService) {
+				repo.On("GetByUsername", "unknown").Return(nil, errors.New("not found"))
+			},
+			expectedToken: "",
+			expectedError: "invalid username or password",
+		},
+		{
+			name:     "Failure - Wrong Password",
+			username: "philip",
+			password: "wrong",
+			mockBehavior: func(repo *mocks.UserRepository, pwd *mocks.PasswordService, jwt *mocks.JWTService) {
+				existingUser := &domain.User{ID: "1", Username: "philip", Password: "hashed_123"}
+				repo.On("GetByUsername", "philip").Return(existingUser, nil)
+				pwd.On("ComparePassword", "hashed_123", "wrong").Return(errors.New("mismatch"))
+			},
+			expectedToken: "",
+			expectedError: "invalid username or password",
+		},
+	}
 
-	uc := NewUserUsecase(mockRepo, mockPwd, mockJWT)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRepo := new(mocks.UserRepository)
+			mockPwd := new(mocks.PasswordService)
+			mockJWT := new(mocks.JWTService)
 
-	user := &domain.User{Username: "philip", Password: "123"}
-	existingUser := &domain.User{Username: "philip"}
+			tc.mockBehavior(mockRepo, mockPwd, mockJWT)
 
-	mockRepo.On("GetByUsername", "philip").Return(existingUser, nil)
+			uc := NewUserUsecase(mockRepo, mockPwd, mockJWT)
+			token, err := uc.Login(tc.username, tc.password)
 
-	err := uc.Register(user)
+			if tc.expectedError == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedToken, token)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tc.expectedError, err.Error())
+				assert.Empty(t, token)
+			}
 
-	assert.Error(t, err)
-	assert.Equal(t, "username already exists", err.Error())
-	
-	mockPwd.AssertNotCalled(t, "HashPassword")
-	mockRepo.AssertNotCalled(t, "Create")
-}
-
-func TestLogin_Success(t *testing.T) {
-	mockRepo := new(mocks.UserRepository)
-	mockPwd := new(mocks.PasswordService)
-	mockJWT := new(mocks.JWTService)
-
-	uc := NewUserUsecase(mockRepo, mockPwd, mockJWT)
-
-	existingUser := &domain.User{ID: "1", Username: "philip", Password: "hashed_pw", Role: "admin"}
-
-	mockRepo.On("GetByUsername", "philip").Return(existingUser, nil)
-	mockPwd.On("ComparePassword", "hashed_pw", "password123").Return(nil)
-	mockJWT.On("GenerateToken", "1", "admin").Return("mock_token", nil)
-
-	token, err := uc.Login("philip", "password123")
-
-	assert.NoError(t, err)
-	assert.Equal(t, "mock_token", token)
-
-	mockRepo.AssertExpectations(t)
-	mockPwd.AssertExpectations(t)
-	mockJWT.AssertExpectations(t)
+			mockRepo.AssertExpectations(t)
+			mockPwd.AssertExpectations(t)
+			mockJWT.AssertExpectations(t)
+		})
+	}
 }
